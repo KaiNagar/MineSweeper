@@ -3,11 +3,13 @@ const MINE = '💣'
 var gBoard
 var gTotalMinesLeft
 var gMinesPos
-var gClicked
+var gIsClicked
 var gTimer
 var gStartTime
 var isTimerOn
-
+var gElTable
+var gLivesLeft
+var isRightClick
 var gLevel = {
     size: 4,
     mines: 2
@@ -19,18 +21,32 @@ var gGame = {
     secsPassed: 0
 }
 
+////////////////////////////////////////
+// Send Help!// 
+////////////////////////////////////////
+
 
 function init() {
+    gLivesLeft = 3
     gGame.isOn = true
+    gIsClicked = false
     gBoard = buildBoard()
     gMinesPos = []
     addRandomMine(gLevel.mines)
-    setMinesNegsCount(gBoard)
     renderBoard(gBoard, '.game-board')
     gTotalMinesLeft = gLevel.mines
-    gClicked = 0
-}
+    gElTable = document.querySelector('.table')
+    gElTable.addEventListener('contextmenu', function (ev) {
+        ev.preventDefault();
+    }, false);
+    window.addEventListener('contextmenu', (event) => {
+        isRightClick = event.button
 
+    })
+
+
+
+}
 function buildBoard() {
     var board = []
     for (var i = 0; i < gLevel.size; i++) {
@@ -56,12 +72,12 @@ function renderBoard(board, selector) {
             var className = 'cell cell-' + i + '-' + j
             if (cell.isMine === false) {
                 if (cell.minesAroundCount === 0) {
-                    strHTML += '<td onclick="cellClicked(this) ,cellMarked(event)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                    strHTML += '<td onclick="cellClicked(this) ,oncontextmenu="cellMarked(this)"" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
                 } else {
-                    strHTML += '<td onclick="cellClicked(this) ,cellMarked(event)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                    strHTML += '<td onclick="cellClicked(this),oncontextmenu="cellMarked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
                 }
             } else {
-                strHTML += '<td onclick="cellClicked(this) ,cellMarked(event)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                strHTML += '<td onclick="cellClicked(this),oncontextmenu="cellMarked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
             }
         }
         strHTML += '</tr>'
@@ -96,6 +112,9 @@ function expandShown(board, idxI, idxJ) {
             cell.isShown = true
             var elCell = document.querySelector(`.cell-${i}-${j}`)
             elCell.classList.add('shown')
+            if (cell.minesAroundCount === 0) {
+                // expandShown(gBoard, i, j)
+            }
             if (cell.minesAroundCount !== 0) {
                 elCell.innerText = cell.minesAroundCount
             }
@@ -131,10 +150,19 @@ function addRandomMine(amount) {
         gMinesPos.push(pos)
     }
 }
-function cellClicked(elCell) {
-    if (!gGame.isOn) return
-    if (gClicked === 0) timerStart()
+
+function cellClicked(elCell,) {
+    if (isRightClick === 2) cellMarked(elCell)
+    elCell.addEventListener('contextmenu', cellMarked(elCell))
+    var elLives = document.querySelector('.lives')
+    var elAlert = document.querySelector('.mineclick')
     var pos = elCell.dataset
+    if (!gIsClicked) {
+        timerStart()
+        gIsClicked = true
+        setMinesNegsCount(gBoard)
+    }
+    if (!gGame.isOn) return
     elCell.classList.add('shown')
     gBoard[pos.i][pos.j].isShown = true
     var cellObj = gBoard[pos.i][pos.j]
@@ -147,8 +175,22 @@ function cellClicked(elCell) {
         elCell.innerText = cellObj.minesAroundCount
     }
     if (elCell.innerText === MINE) {
-        gGame.isOn = false
-        gameOver(elCell)
+        if (!elCell.isShown && gLivesLeft === 3) {
+            elLives.innerText = 'Lives Left:💙💙'
+            gLivesLeft--
+        } else if (!elCell.isShown && gLivesLeft === 2) {
+            elLives.innerText = 'Lives Left:💙'
+            gLivesLeft--
+        } else {
+            elLives.innerText = 'Lives Left:You Are Dead'
+            gGame.isOn = false
+            gameOver(elCell)
+        }
+        elAlert.style.display = 'block'
+        setTimeout(() => {
+            elAlert.style.display = 'none'
+        }, 1000);
+
     }
     if (checkGameOver()) {
         timerEnd()
@@ -162,19 +204,31 @@ function cellClicked(elCell) {
             currMine.isShown = true
         }
     }
-    gClicked++
+    gIsClicked++
 }
-function cellMarked(eventMouse) {
-    console.log(eventMouse);
+
+function cellMarked(elCell) {
+    console.log(elCell);
+    if (elCell.isShown) return
+    if (elCell.isMarked) {
+        elCell.isMarked = false
+        elCell.classList.remove('marked')
+    } else {
+        elCell.isMarked = true
+        elCell.classList.add('marked')
+    }
 }
 
 function checkGameOver() {
     var cellsCount = gBoard.length ** 2
     var shownCount = 0
-    var minesCount = gMinesPos.length
+    var minesCount = 0
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard.length; j++) {
             if (gBoard[i][j].isShown === true) shownCount++
+            if (gBoard[i][j].isMine && !gBoard[i][j].isShown) {
+                minesCount++
+            }
         }
     }
     if (cellsCount === shownCount + minesCount) {
@@ -197,9 +251,13 @@ function gameOver(elCell) {
 }
 function resetGame() {
     init()
+    timerEnd()
     timerReset()
+    gIsClicked = false
     var elBtn = document.querySelector('.btn')
+    var elLives = document.querySelector('.lives')
     elBtn.innerText = '😀'
+    elLives.innerText = 'Lives Left:💙💙💙'
 }
 
 function toggleGame(elBtn) {

@@ -34,6 +34,9 @@ td {
     border-bottom: 5px solid white;
     border-right: 5px solid white;
 }
+.marked{
+    background-color: yellow;
+}
 
 .timer {
     position: absolute;
@@ -47,7 +50,24 @@ td {
     font-size: 30px;
     font-family: monospace;
 }
-
+.lives{
+    position: absolute;
+    font-size: 40px;
+    left: 50px;
+}
+.mineclick{
+    display: none;
+    margin: auto;
+    position: absolute;
+    width: 250px;
+    height: 100px;
+    top: 300px;
+    left: 500px;
+    font-size: 40px;
+    font-weight: bold;
+    background-color: brown;
+    border: 2px solid black;
+}
 .btn {
     height: 60px;
     width: 60px;
@@ -104,4 +124,10 @@ td {
     height: 50px;
     width: 150px;
 
+}
+.footer{
+    position:absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: lightcoral;
 }

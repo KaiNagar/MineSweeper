@@ -22,10 +22,19 @@ function timerEnd() {
 }
 function timerReset() {
     var elTimer = document.querySelector('.timer')
-    elTimer.innerText = '00:00'
+    elTimer.innerText = '0.00'
 }
 function renderCell(location, value) {
     // Select the elCell and set the value
     var elCell = document.querySelector(`.cell-${location.i}-${location.j}`);
     elCell.innerHTML = value;
+  }
+
+  function hideMenu(){
+      return ''
+  }
+
+  function isRightClick(button){
+      if(button===2)return true
+      return false
   }
