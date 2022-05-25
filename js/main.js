@@ -48,7 +48,7 @@ function buildBoard() {
     return board
 }
 function renderBoard(board, selector) {
-    var strHTML = '<table border="0"><tbody></tbody>'
+    var strHTML = '<table class="table" border="0"><tbody></tbody>'
     for (var i = 0; i < gBoard.length; i++) {
         strHTML += '<tr>'
         for (var j = 0; j < gBoard[i].length; j++) {
@@ -86,20 +86,21 @@ function countNeighbors(board, rowIdx, colIdx) {
 }
 
 
-function expandSpace(board, idxI, idxJ) {
-    console.log(idxI,idxJ);
-    for (var i = idxI - 1; i <= idxI + 1; i++) {
+function expandShown(board, idxI, idxJ) {
+    for (var i = +idxI - 1; i <= +idxI + 1; i++) {
         if (i < 0 || i > board.length - 1) continue
-        for (var j = idxJ - 1; j <= idxJ + 1; j++){
+        for (var j = +idxJ - 1; j <= +idxJ + 1; j++) {
             if (j < 0 || j > board[0].length - 1) continue
-            if (i === idxI && j === idxJ) continue
+            if (i === +idxI && j === +idxJ) continue
             var cell = board[i][j]
-            console.log(i,j);
             cell.isShown = true
-            console.log(cell);            
+            var elCell = document.querySelector(`.cell-${i}-${j}`)
+            elCell.classList.add('shown')
+            if (cell.minesAroundCount !== 0) {
+                elCell.innerText = cell.minesAroundCount
+            }
         }
     }
-
 }
 
 
@@ -140,7 +141,7 @@ function cellClicked(elCell) {
     if (cellObj.isMine === true) {
         elCell.innerText = MINE
     } else if (cellObj.minesAroundCount === 0) {
-        expandSpace(gBoard,pos.i,pos.j)
+        expandShown(gBoard, pos.i, pos.j)
         elCell.innerText = ''
     } else {
         elCell.innerText = cellObj.minesAroundCount
@@ -163,9 +164,9 @@ function cellClicked(elCell) {
     }
     gClicked++
 }
-// function cellMarked(eventMouse) {
-//     console.log(eventMouse.code);
-// }
+function cellMarked(eventMouse) {
+    console.log(eventMouse);
+}
 
 function checkGameOver() {
     var cellsCount = gBoard.length ** 2
@@ -177,7 +178,6 @@ function checkGameOver() {
         }
     }
     if (cellsCount === shownCount + minesCount) {
-        console.log('youwonblyat');
         return true
     }
     return false
@@ -202,4 +202,24 @@ function resetGame() {
     elBtn.innerText = '😀'
 }
 
-
+function toggleGame(elBtn) {
+    timerEnd()
+    timerReset()
+    if (elBtn.innerText === 'Beginner') {
+        gLevel.size = 4
+        gLevel.mines = 2
+    }
+    if (elBtn.innerText === 'Medium') {
+        gLevel.size = 8
+        gLevel.mines = 12
+    }
+    if (elBtn.innerText === 'Expert') {
+        gLevel.size = 12
+        gLevel.mines = 30
+    }
+    // if(elBtn.innerText === 'Custom'){
+    //     gLevel.size = 4
+    //     gLevel.mines = 2
+    // }
+    resetGame()
+}

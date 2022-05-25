@@ -3,9 +3,6 @@
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
-
-
-
 function timerStart() {
     gStartTime = new Date
     isTimerOn = true
@@ -27,3 +24,8 @@ function timerReset() {
     var elTimer = document.querySelector('.timer')
     elTimer.innerText = '00:00'
 }
+function renderCell(location, value) {
+    // Select the elCell and set the value
+    var elCell = document.querySelector(`.cell-${location.i}-${location.j}`);
+    elCell.innerHTML = value;
+  }
