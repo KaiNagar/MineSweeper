@@ -72,12 +72,12 @@ function renderBoard(board, selector) {
             var className = 'cell cell-' + i + '-' + j
             if (cell.isMine === false) {
                 if (cell.minesAroundCount === 0) {
-                    strHTML += '<td onclick="cellClicked(this) ,oncontextmenu="cellMarked(this)"" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                    strHTML += '<td onclick="cellClicked(this)"" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
                 } else {
-                    strHTML += '<td onclick="cellClicked(this),oncontextmenu="cellMarked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                    strHTML += '<td onclick="cellClicked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
                 }
             } else {
-                strHTML += '<td onclick="cellClicked(this),oncontextmenu="cellMarked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
+                strHTML += '<td onclick="cellClicked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
             }
         }
         strHTML += '</tr>'
@@ -152,8 +152,8 @@ function addRandomMine(amount) {
 }
 
 function cellClicked(elCell,) {
-    if (isRightClick === 2) cellMarked(elCell)
-    elCell.addEventListener('contextmenu', cellMarked(elCell))
+    // if (isRightClick === 2) cellMarked(elCell)
+    // elCell.addEventListener('contextmenu', cellMarked(elCell))
     var elLives = document.querySelector('.lives')
     var elAlert = document.querySelector('.mineclick')
     var pos = elCell.dataset
@@ -207,17 +207,17 @@ function cellClicked(elCell,) {
     gIsClicked++
 }
 
-function cellMarked(elCell) {
-    console.log(elCell);
-    if (elCell.isShown) return
-    if (elCell.isMarked) {
-        elCell.isMarked = false
-        elCell.classList.remove('marked')
-    } else {
-        elCell.isMarked = true
-        elCell.classList.add('marked')
-    }
-}
+// function cellMarked(elCell) {
+//     console.log(elCell);
+//     if (elCell.isShown) return
+//     if (elCell.isMarked) {
+//         elCell.isMarked = false
+//         elCell.classList.remove('marked')
+//     } else {
+//         elCell.isMarked = true
+//         elCell.classList.add('marked')
+//     }
+// }
 
 function checkGameOver() {
     var cellsCount = gBoard.length ** 2
