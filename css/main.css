@@ -34,7 +34,8 @@ td {
     border-bottom: 5px solid white;
     border-right: 5px solid white;
 }
-.marked{
+
+.marked {
     background-color: yellow;
 }
 
@@ -50,24 +51,27 @@ td {
     font-size: 30px;
     font-family: monospace;
 }
-.lives{
+
+.lives {
     position: absolute;
     font-size: 40px;
     left: 50px;
 }
-.mineclick{
+
+.mineclick {
     display: none;
     margin: auto;
     position: absolute;
     width: 250px;
     height: 100px;
     top: 300px;
-    left: 500px;
+    left: 833px;
     font-size: 40px;
     font-weight: bold;
     background-color: brown;
-    border: 2px solid black;
+    border: 3px solid black;
 }
+
 .btn {
     height: 60px;
     width: 60px;
@@ -80,7 +84,8 @@ td {
     margin-bottom: 5px;
 
 }
-.btn:hover{
+
+.btn:hover {
     background-color: rgb(200, 171, 171);
     height: 70px;
     width: 70px;
@@ -117,6 +122,7 @@ td {
     width: 150px;
 
 }
+
 .btncostume {
     position: absolute;
     top: 400px;
@@ -125,8 +131,9 @@ td {
     width: 150px;
 
 }
-.footer{
-    position:absolute;
+
+.footer {
+    position: absolute;
     bottom: 0;
     width: 100%;
     background-color: lightcoral;

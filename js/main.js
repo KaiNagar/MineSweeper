@@ -33,6 +33,7 @@ function init() {
     gBoard = buildBoard()
     gMinesPos = []
     addRandomMine(gLevel.mines)
+    setMinesNegsCount(gBoard)
     renderBoard(gBoard, '.game-board')
     gTotalMinesLeft = gLevel.mines
     gElTable = document.querySelector('.table')
@@ -160,7 +161,6 @@ function cellClicked(elCell,) {
     if (!gIsClicked) {
         timerStart()
         gIsClicked = true
-        setMinesNegsCount(gBoard)
     }
     if (!gGame.isOn) return
     elCell.classList.add('shown')
