@@ -1,0 +1,101 @@
+/* best score text */
+.besttime {
+    background-color: rgba(8, 7, 39, 0.467);
+    color: rgb(162, 188, 223);
+    position: absolute;
+    font-size: 30px;
+    top: 580px;
+    left: 100px;
+    border: 5px dotted rgb(72, 103, 171);
+    padding: 10px;
+}
+
+/* best score result */
+.bscore {
+    font-size: 40px;
+}
+
+/* hints left text */
+.hintsleft {
+    background-color: rgba(8, 7, 39, 0.467);
+    color: rgb(162, 188, 223);
+    position: absolute;
+    font-size: 30px;
+    top: 300px;
+    left: 100px;
+    border: 5px dotted rgb(72, 103, 171);
+    padding: 10px;
+}
+
+/* hints ICON */
+.hints {
+    cursor: pointer;
+    font-size: 30px;
+}
+
+/* hints hover */
+.hints:hover {
+    font-size: 40px;
+}
+
+/* mines left text */
+.minesleft {
+    background-color: rgba(8, 7, 39, 0.467);
+    color: rgb(162, 188, 223);
+    position: absolute;
+    font-size: 30px;
+    top: 380px;
+    left: 100px;
+    border: 5px dotted rgb(72, 103, 171);
+    padding: 10px;
+}
+
+/* mines left number */
+.minescount {
+    font-family: monospace;
+    width: 220px;
+    height: 40px;
+    text-align: right;
+}
+
+/* safeclick button */
+.btnsafe {
+    background-color: blue;
+    color: white;
+    position: absolute;
+    font-size: 30px;
+    top: 520px;
+    left: 150px;
+    cursor: pointer;
+}
+
+/* safeclick button hover */
+.btnsafe:hover {
+    background-color: rgb(153, 153, 214);
+}
+
+/* safeclick text */
+.safeclick {
+    background-color: rgba(8, 7, 39, 0.467);
+    color: rgb(162, 188, 223);
+    position: absolute;
+    font-size: 30px;
+    top: 460px;
+    left: 100px;
+    border: 5px dotted rgb(72, 103, 171);
+    padding: 10px;
+    height: 80px;
+}
+
+/* life left text */
+.livesleft {
+    background-color: rgba(8, 7, 39, 0.467);
+    color: rgb(162, 188, 223);
+    position: absolute;
+    font-size: 30px;
+    left: 100px;
+    top: 220px;
+    border: 5px dotted rgb(72, 103, 171);
+    padding: 10px;
+
+}

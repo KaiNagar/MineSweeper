@@ -1,16 +1,19 @@
 'use strict'
+
 const MINE = '💣'
-var gBoard
-var gTotalMinesLeft
-var gMinesPos
-var gIsClicked
-var gTimer
-var gStartTime
-var isTimerOn
-var gElTable
-var gLivesLeft
-var isRightClick
-var gLevel = {
+                                    ///////////////     ////                    ////////////////                ////////
+                                        //////          ////                        /////                   ////////////////    
+                                        //////          ////                        /////                 //////        //////  
+                                        //////          ////                        /////                //////          //////
+                                        //////          ////                        /////                 /////  
+                                        //////          ////                        /////                  /////     
+                                        //////          ////                        /////                   /////    
+var gBoard                              //////          ////                         /////                    //////
+var gTotalMinesLeft                     //////          ////                          /////          /////       ////
+var gMinesPos                           //////          ////                           /////          /////       /////
+var gIsClicked                          //////          ////                            /////          /////     //////
+var gScore                              //////          ////                            /////           ///////////////          
+var gLevel = {                      ///////////////     ///////////////////              /////////////    ///////////
     size: 4,
     mines: 2
 }
@@ -21,73 +24,31 @@ var gGame = {
     secsPassed: 0
 }
 
-////////////////////////////////////////
-// Send Help!// 
-////////////////////////////////////////
+//////////////////////////////////////////////
+// Send Help!// Too Late Look What I Made😣//
+/////////////////////////////////////////////
 
-
+//will start run once the page is loaded, having most of the global variables set to there values
 function init() {
     gLivesLeft = 3
+    gHints = 3
+    gSafeClicks = 3
     gGame.isOn = true
     gIsClicked = false
+    gIsHinting = false
     gBoard = buildBoard()
     gMinesPos = []
+    renderBoard(gBoard, '.game-board')
     addRandomMine(gLevel.mines)
     setMinesNegsCount(gBoard)
-    renderBoard(gBoard, '.game-board')
     gTotalMinesLeft = gLevel.mines
-    gElTable = document.querySelector('.table')
-    gElTable.addEventListener('contextmenu', function (ev) {
-        ev.preventDefault();
+    renderMinesLeft()
+    document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
     }, false);
-    window.addEventListener('contextmenu', (event) => {
-        isRightClick = event.button
-
-    })
-
-
-
-}
-function buildBoard() {
-    var board = []
-    for (var i = 0; i < gLevel.size; i++) {
-        board[i] = []
-        for (var j = 0; j < gLevel.size; j++) {
-            var cell = {
-                minesAroundCount: 0,
-                isShown: false,
-                isMine: false,
-                isMarked: false
-            }
-            board[i][j] = cell
-        }
-    }
-    return board
-}
-function renderBoard(board, selector) {
-    var strHTML = '<table class="table" border="0"><tbody></tbody>'
-    for (var i = 0; i < gBoard.length; i++) {
-        strHTML += '<tr>'
-        for (var j = 0; j < gBoard[i].length; j++) {
-            var cell = board[i][j]
-            var className = 'cell cell-' + i + '-' + j
-            if (cell.isMine === false) {
-                if (cell.minesAroundCount === 0) {
-                    strHTML += '<td onclick="cellClicked(this)"" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
-                } else {
-                    strHTML += '<td onclick="cellClicked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
-                }
-            } else {
-                strHTML += '<td onclick="cellClicked(this)" data-i="' + i + '" data-j="' + j + '" class="' + className + '"></td>'
-            }
-        }
-        strHTML += '</tr>'
-    }
-    strHTML += '</tbody></table>'
-    var elContainer = document.querySelector(selector);
-    elContainer.innerHTML = strHTML;
 }
 
+//counting neighbors for the a specific cell
 function countNeighbors(board, rowIdx, colIdx) {
     var count = 0
     for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
@@ -101,20 +62,19 @@ function countNeighbors(board, rowIdx, colIdx) {
     }
     return count
 }
-
-
+//if cell have 0 beighbors it will expand all cells on the 1st degree
 function expandShown(board, idxI, idxJ) {
     for (var i = +idxI - 1; i <= +idxI + 1; i++) {
         if (i < 0 || i > board.length - 1) continue
         for (var j = +idxJ - 1; j <= +idxJ + 1; j++) {
             if (j < 0 || j > board[0].length - 1) continue
-            if (i === +idxI && j === +idxJ) continue
             var cell = board[i][j]
+            if (cell.isMarked) continue
             cell.isShown = true
             var elCell = document.querySelector(`.cell-${i}-${j}`)
             elCell.classList.add('shown')
             if (cell.minesAroundCount === 0) {
-                // expandShown(gBoard, i, j)
+                elCell.innerText = ''
             }
             if (cell.minesAroundCount !== 0) {
                 elCell.innerText = cell.minesAroundCount
@@ -122,8 +82,7 @@ function expandShown(board, idxI, idxJ) {
         }
     }
 }
-
-
+//filling in every cell the key : minesAroundCount by sending each cell to the count function
 function setMinesNegsCount(board) {
     for (var i = 0; i < board.length; i++) {
         for (var j = 0; j < board.length; j++) {
@@ -132,12 +91,7 @@ function setMinesNegsCount(board) {
         }
     }
 }
-
-
-
-
-
-
+//adding random mines based on the level mines
 function addRandomMine(amount) {
     var mines = 0
     while (mines < amount) {
@@ -151,94 +105,140 @@ function addRandomMine(amount) {
         gMinesPos.push(pos)
     }
 }
-
-function cellClicked(elCell,) {
-    // if (isRightClick === 2) cellMarked(elCell)
-    // elCell.addEventListener('contextmenu', cellMarked(elCell))
-    var elLives = document.querySelector('.lives')
-    var elAlert = document.querySelector('.mineclick')
+//became the biggest function and the one who does almost everything (not sure if it was intended)
+//open function to see what is what
+function cellClicked(elCell) {
+    var elLives = document.querySelector('.hearts')
     var pos = elCell.dataset
+    var cellInDom = gBoard[pos.i][pos.j]
+    //some checkings if we dont want clicks to happens
+    if (cellInDom.isShown) return
+    if (cellInDom.isMarked) return
+    if (!gGame.isOn) return
+    //first click start the timer
     if (!gIsClicked) {
         timerStart()
         gIsClicked = true
+        gScore = new Date
     }
-    if (!gGame.isOn) return
+    //when clicking a hint we go into this condition that show us the cells and hide them back after 1 sec
+    if (gIsHinting) {
+        showHint(gBoard, pos.i, pos.j)
+        setTimeout(() => {
+            hideHint(gBoard, pos.i, pos.j)
+        }, 1000);
+        gIsHinting = false
+        return
+    }
+    //normal clicks
     elCell.classList.add('shown')
-    gBoard[pos.i][pos.j].isShown = true
-    var cellObj = gBoard[pos.i][pos.j]
-    if (cellObj.isMine === true) {
+    cellInDom.isShown = true
+    if (cellInDom.isMine === true) {
         elCell.innerText = MINE
-    } else if (cellObj.minesAroundCount === 0) {
+    } else if (cellInDom.minesAroundCount === 0) {
         expandShown(gBoard, pos.i, pos.j)
         elCell.innerText = ''
     } else {
-        elCell.innerText = cellObj.minesAroundCount
+        elCell.innerText = cellInDom.minesAroundCount
     }
+    //clicking a mine:  updating the hearts count updating the mines count and if no more hearts game over
     if (elCell.innerText === MINE) {
-        if (!elCell.isShown && gLivesLeft === 3) {
-            elLives.innerText = 'Lives Left:💙💙'
-            gLivesLeft--
-        } else if (!elCell.isShown && gLivesLeft === 2) {
-            elLives.innerText = 'Lives Left:💙'
-            gLivesLeft--
-        } else {
-            elLives.innerText = 'Lives Left:You Are Dead'
+        gTotalMinesLeft--
+        renderMinesLeft()
+        renderLives()
+        if (gLivesLeft === 0) {
+            renderLives()
             gGame.isOn = false
             gameOver(elCell)
+            elLives.innerText = 'You Are Dead!'
         }
-        elAlert.style.display = 'block'
-        setTimeout(() => {
-            elAlert.style.display = 'none'
-        }, 1000);
-
+        //function that pop a modal to let u know we clicked a mine
+        alertMine()
     }
+    //checking if we won the game and rendering the smile into crown as a king of the game
     if (checkGameOver()) {
         timerEnd()
+        var endScore = new Date
         var elBtn = document.querySelector('.btn')
-        elBtn.innerText = '😆'
-        for (var i = 0; i < gMinesPos.length; i++) {
-            var elMine = document.querySelector(`.cell-${gMinesPos[i].i}-${[gMinesPos[i].j]}`)
-            elMine.innerText = MINE
-            elMine.classList.add('shown')
-            var currMine = gBoard[gMinesPos[i].i][gMinesPos[i].j]
-            currMine.isShown = true
+        elBtn.innerText = '👑'
+        exposeMines()
+        gScore = ((parseInt(endScore - gScore) / 10) / 100)
+    }
+}
+//when cell is right clicked it wil lbe marked with a flag
+function cellMarked(elCell) {
+    var pos = elCell.dataset
+    var cell = gBoard[pos.i][pos.j]
+    if (cell.isShown) return
+    if (cell.isMarked) {
+        cell.isMarked = false
+        elCell.innerText = ''
+        gTotalMinesLeft++
+        renderMinesLeft()
+    } else {
+        cell.isMarked = true
+        elCell.innerText = '🚩'
+        gTotalMinesLeft--
+        renderMinesLeft()
+        if (checkGameOver()) {
+            var endScore = new Date
+            timerEnd()
+            var elBtn = document.querySelector('.btn')
+            elBtn.innerText = '👑'
+            exposeMines()
+            gScore = ((parseInt(endScore - gScore) / 10) / 100)
         }
     }
-    gIsClicked++
 }
-
-// function cellMarked(elCell) {
-//     console.log(elCell);
-//     if (elCell.isShown) return
-//     if (elCell.isMarked) {
-//         elCell.isMarked = false
-//         elCell.classList.remove('marked')
-//     } else {
-//         elCell.isMarked = true
-//         elCell.classList.add('marked')
-//     }
-// }
-
+//checking of game is over by winning
 function checkGameOver() {
     var cellsCount = gBoard.length ** 2
     var shownCount = 0
-    var minesCount = 0
+    var markCount = 0
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard.length; j++) {
             if (gBoard[i][j].isShown === true) shownCount++
-            if (gBoard[i][j].isMine && !gBoard[i][j].isShown) {
-                minesCount++
-            }
+            if (gBoard[i][j].isMarked === true) markCount++
         }
     }
-    if (cellsCount === shownCount + minesCount) {
+    if (shownCount === cellsCount - markCount && shownCount > 0 && markCount <= gMinesPos.length) {
         return true
     }
     return false
 }
+//when game is over by clicking a mine the mine background wil become red as its the losing mine and all mines will be revealed
 function gameOver(elCell) {
     timerEnd()
     elCell.classList.add('losingcell')
+    exposeMines()
+    var elBtn = document.querySelector('.btn')
+    elBtn.innerText = '🤯'
+}
+//reseting the game
+function resetGame() {
+    init()
+    timerEnd()
+    timerReset()
+    gIsClicked = false
+    renderSafeClick()
+    var elBtn = document.querySelector('.btn')
+    var elhearts = document.querySelector('.hearts')
+    var elHints = document.querySelector('.hints')
+    elBtn.innerText = '😀'
+    elhearts.innerText = '💙💙💙'
+    elHints.innerText = '💡💡💡'
+}
+
+//when clicking a mine a modal will pop up to let you know!!!! be careful!!
+function alertMine() {
+    var elAlert = document.querySelector('.mineclick')
+    elAlert.style.display = 'block'
+    setTimeout(() => {
+        elAlert.style.display = 'none'
+    }, 1000);
+}
+//incharge for exposing the mines in gameover function and some other case when game is over
+function exposeMines() {
     for (var i = 0; i < gMinesPos.length; i++) {
         var elMine = document.querySelector(`.cell-${gMinesPos[i].i}-${[gMinesPos[i].j]}`)
         elMine.innerText = MINE
@@ -246,38 +246,55 @@ function gameOver(elCell) {
         var currMine = gBoard[gMinesPos[i].i][gMinesPos[i].j]
         currMine.isShown = true
     }
-    var elBtn = document.querySelector('.btn')
-    elBtn.innerText = '🤯'
-}
-function resetGame() {
-    init()
-    timerEnd()
-    timerReset()
-    gIsClicked = false
-    var elBtn = document.querySelector('.btn')
-    var elLives = document.querySelector('.lives')
-    elBtn.innerText = '😀'
-    elLives.innerText = 'Lives Left:💙💙💙'
 }
 
-function toggleGame(elBtn) {
-    timerEnd()
-    timerReset()
-    if (elBtn.innerText === 'Beginner') {
-        gLevel.size = 4
-        gLevel.mines = 2
-    }
-    if (elBtn.innerText === 'Medium') {
-        gLevel.size = 8
-        gLevel.mines = 12
-    }
-    if (elBtn.innerText === 'Expert') {
-        gLevel.size = 12
-        gLevel.mines = 30
-    }
-    // if(elBtn.innerText === 'Custom'){
-    //     gLevel.size = 4
-    //     gLevel.mines = 2
-    // }
-    resetGame()
-}
+
+// WIP
+//storing the best score each round and checking if its 
+//better then the current best score
+
+// function bestScoreRender() {
+//     var elScore = document.querySelector('.bscore')
+//     var bestScore1 = localStorage.getItem('score1')
+//     var bestScore2 = localStorage.getItem('score2')
+//     var bestScore3 = localStorage.getItem('score3')
+//     if (gLevel.size === 4) {
+//         if (elScore.innerText === '0.00') elScore.innerText = gScore
+//         if (gScore < bestScore1) {
+//             localStorage.setItem('score1', gScore)
+//             elScore.innerText = gScore
+//         }
+//     }
+//     if (gLevel.size === 8) {
+//         if (elScore.innerText === '0.00') elScore.innerText = gScore
+//         if (gScore < bestScore2) {
+//             localStorage.setItem('score2', gScore)
+//             elScore.innerText = gScore
+//         }
+//     }
+//     if (gLevel.size === 12) {
+//         if (elScore.innerText === '0.00') elScore.innerText = gScore
+//         if (gScore < bestScore3) {
+//             localStorage.setItem('score3', gScore)
+//             elScore.innerText = gScore
+//         }
+//     }
+// }
+// rendering the dom with past best scores when game starts
+// function renderPastScores() {
+//     var elScore = document.querySelector('.bscore')
+//     var scoreLvl1 = localStorage.getItem('Best Score1:')
+//     var scoreLvl2 = localStorage.getItem('Best Score2:')
+//     var scoreLvl3 = localStorage.getItem('Best Score3:')
+//     if (gLevel.size === 4) {
+//         if (!elScore.innerText) elScore.innerText = '0.00'
+//         elScore.innerText = scoreLvl1
+//     } else if (gLevel.size === 8) {
+//         if (!elScore.innerText) elScore.innerText = '0.00'
+//         elScore.innerText = scoreLvl2
+//     } else if (gLevel.size === 12) {
+//         if (!elScore.innerText) elScore.innerText = '0.00'
+//         elScore.innerText = scoreLvl3
+
+//     }
+// }

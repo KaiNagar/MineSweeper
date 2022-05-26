@@ -6,28 +6,40 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/leftmenu.css">
+    <link rel="stylesheet" href="css/rightmenu.css">
     <title>Kai Nagar S1</title>
 </head>
 
-
 <body class="body" onload="init()">
     <div class="timer">0.00</div>
-    <h1 class="title">The Game</h1>
-    <div class="lives">Lives Left:💙💙💙</div>
+    <h1 class="title">Minesweeper</h1>
+
+    <div class="livesleft">Lives Left:<span class="hearts">💙💙💙</span></div>
+    <div class="hintsleft">Hints Left: <span onclick="renderHints(this)" class="hints">💡💡💡</span></div>
+    <div class=minesleft>Mines Left:<span class="minescount">2</span></div>
+    <div class="safeclick">Remaining Clicks:<span class="remclicks">3</span></div>
+    <button onclick="makeSafeClick()" class="btnsafe">Safe Click</button>
     <div class="mineclick">You Steped On A Mine!</div>
+    <div class="besttime">Best Score:<span class="bscore">0.00</span></div>
+    <!-- <button onclick="clearLocal()" >Click to reset Best Scores</button> -->
+
     <div onclick="resetGame()" class="btn">😀</div>
+
     <button class="btn4" onclick="toggleGame(this)">Beginner</button>
     <button class="btn8" onclick="toggleGame(this)">Medium</button>
     <button class="btn12" onclick="toggleGame(this)">Expert</button>
-    <button class="btncostume" onclick="toggleGame(this)">Costume</button>
+    <!-- <button class="btncostume" onclick="toggleGame(this)">Costume</button> -->
+
 
 
 
     <div class="game-board"></div>
 
-    <script src="js/main.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/fetures.js"></script>
+    <script src="js/main.js"></script>
 </body>
-<footer class="footer">Made By Kai Nagar: Coding Academy, May, 2022.  All CoffeeRights Belong To Kai Nagar.</footer>
+<footer class="footer">Made By Kai Nagar: Coding Academy, May, 2022. All CoffeeRights Belong To Kai Nagar.</footer>
 
 </html>
