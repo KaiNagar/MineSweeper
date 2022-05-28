@@ -241,7 +241,7 @@ function playManual(elBtn) {
 
 //going back to last action the user took all the way back to the start of the game
 function undo() {
-    if (gGameMoves.length < 1) return
+    if (gGameMoves.length === 0) return
     console.log(gGameMoves);
     var lastMove = gGameMoves[gGameMoves.length - 1]
     var lastAction = lastMove.action
