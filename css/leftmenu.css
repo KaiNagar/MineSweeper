@@ -82,7 +82,7 @@
 
 /* safeclick text */
 .safeclick {
-    background-color: rgba(8, 7, 39, 0.467);
+    background-color: #08072777;
     color: rgb(162, 188, 223);
     position: absolute;
     font-size: 30px;

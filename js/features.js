@@ -11,9 +11,6 @@ var gElScore = document.querySelector('.bscore')
 var gMoves = []
 var isManual = false
 
-
-
-
 //toggling from each game lvl
 function toggleGame(elBtn) {
     timerEnd()
@@ -39,6 +36,7 @@ function toggleGame(elBtn) {
     }
     if (elBtn.innerText === '7 BOOM!') {
         isManual = false
+        gIsBoom = true
         boom(gBoard, gMinesPos)
         return
 
@@ -159,7 +157,7 @@ function makeSafeClick() {
 
 // rendering the best scores on this curr web , per level
 function renderBestScore() {
-    if (gLevel.size === 4 && gIsClicked) {
+    if (gLevel.size === 4 && gIsFirstClick) {
         var currScore = localStorage.getItem('currScore')
         var bestScore = localStorage.getItem('bestScore')
         if (!bestScore) {
@@ -172,10 +170,10 @@ function renderBestScore() {
         }
         gElScore.innerText = localStorage.getItem('bestScore')
     }
-    if (gLevel.size === 8 && gIsClicked) {
+    if (gLevel.size === 8 && gIsFirstClick) {
         var currScore2 = localStorage.getItem('currScore2')
         var bestScore2 = localStorage.getItem('bestScore2')
-        
+
         if (!bestScore2) {
             localStorage.setItem('bestScore2', currScore2)
             gElScore.innerText = '0.00'
@@ -186,7 +184,7 @@ function renderBestScore() {
         }
         gElScore.innerText = localStorage.getItem('bestScore2')
     }
-    if (gLevel.size === 12 && gIsClicked) {
+    if (gLevel.size === 12 && gIsFirstClick) {
         var currScore3 = localStorage.getItem('currScore3')
         var bestScore3 = localStorage.getItem('bestScore3')
         if (!bestScore3) {
@@ -206,14 +204,19 @@ function renderBestScore() {
 function boom(board, minesPos) {
     var minesPos = []
     clearBoard()
-    for (var cellNum = 7; cellNum < (board.length * board.length); cellNum += 7) {
-        var elCell = document.querySelector(`.cell${cellNum}`)
-        var pos = elCell.dataset
-        gBoard[pos.i][pos.j].isMine = true
-        minesPos.push(pos)
+    for (var cellNum = 1; cellNum < (board.length * board.length); cellNum++) {
+        var dig1 = cellNum % 10
+        var dig2 = Math.floor(cellNum / 10)
+        var dig3 = Math.floor(cellNum / 100)
+        if (cellNum % 7 === 0 || dig1 === 7 || dig2 === 7 || dig3 === 7) {
+            var elCell = document.querySelector(`.cell${cellNum}`)
+            var pos = elCell.dataset
+            gBoard[pos.i][pos.j].isMine = true
+            minesPos.push(pos)
+        }
     }
-    setMinesNegsCount(gBoard)
     gMinesPos = minesPos
+    setMinesNegsCount(gBoard)
 }
 
 //clearing the board from mines
@@ -234,6 +237,46 @@ function playManual(elBtn) {
         gBoard[gMinesPos[i].i][gMinesPos[i].j].isMine = true
     }
     setMinesNegsCount(gBoard)
+}
+
+//going back to last action the user took all the way back to the start of the game
+function undo() {
+    if (gGameMoves.length < 1) return
+    console.log(gGameMoves);
+    var lastMove = gGameMoves[gGameMoves.length - 1]
+    var lastAction = lastMove.action
+    var lastPos = lastMove.location
+    var lastCell = lastMove.cell
+    if (lastAction === 'mark') {
+        gBoard[lastPos.i][lastPos.j].isMarked = false
+        gTotalMinesLeft++
+        lastCell.innerText = ''
+        renderMinesLeft()
+    }
+    if (lastAction === 'unmark') {
+        gBoard[lastPos.i][lastPos.j].isMarked = true
+        gTotalMinesLeft--
+        lastCell.innerText = '🚩'
+        renderMinesLeft()
+    }
+    if (lastAction === 'click') {
+        if (gBoard[lastPos.i][lastPos.j].minesAroundCount === 0) {
+            expandHidden(gBoard, lastPos.i, lastPos.j)
+        }
+        lastCell.classList.remove('shown')
+        lastCell.innerText = ''
+        gBoard[lastPos.i][lastPos.j].isShown = false
+    }
+    if (lastAction === 'mine') {
+        lastCell.classList.remove('shown')
+        lastCell.innerText = ''
+        gBoard[lastPos.i][lastPos.j].isShown = false
+        gTotalMinesLeft++
+        renderMinesLeft()
+        gLivesLeft += 2
+        renderLives()
+    }
+    gGameMoves.pop()
 }
 
 //reseting local storage and reseting best scores

@@ -1,17 +1,17 @@
 'use strict'
 
 const MINE = '💣'
-///////////////     ////                    ////////////////                ////////
-//////          ////                        /////                   ////////////////    
-//////          ////                        /////                 //////        //////  
-//////          ////                        /////                //////          //////
-//////          ////                        /////                 /////  
-//////          ////                        /////                  /////     
-//////          ////                        /////                   /////    
-var gBoard                              //////          ////                         /////                    //////
-var gTotalMinesLeft                     //////          ////                          /////          /////       ////
-var gMinesPos                           //////          ////                           /////          /////       /////
-var gIsClicked                          //////          ////                            /////          /////     //////
+                                    ///////////////     ////                    ////////////////             ////////
+                                        //////          ////                        /////                 /////////////  
+                                        //////          ////                        /////               //////      //////  
+                                        //////          ////                        /////                 //////     //////
+                                        //////          ////                        /////                  /////  
+                                        //////          ////                        /////                   /////     
+                                        //////          ////                        /////                    /////    
+var gBoard                              //////          ////                         /////                     //////
+var gTotalMinesLeft                     //////          ////                          /////           /////       ////
+var gMinesPos                           //////          ////                           /////           /////       /////
+var gIsFirstClick                       //////          ////                            /////           /////     //////
 var gLevel = {                      ///////////////     ///////////////////              /////////////    ///////////
     size: 4,
     mines: 2
@@ -22,7 +22,8 @@ var gGame = {
     markedCount: 0,
     secsPassed: 0
 }
-
+var gIsBoom
+var gGameMoves = []
 //////////////////////////////////////////////
 // Send Help!// Too Late Look What I Made😣//
 /////////////////////////////////////////////
@@ -33,8 +34,9 @@ function init() {
     gHints = 3
     gSafeClicks = 3
     gGame.isOn = true
-    gIsClicked = false
+    gIsFirstClick = false
     gIsHinting = false
+    gIsBoom = false
     gBoard = buildBoard()
     gMinesPos = []
     renderBoard(gBoard, '.game-board')
@@ -43,7 +45,7 @@ function init() {
     gTotalMinesLeft = gLevel.mines
     renderMinesLeft()
     renderBestScore()
-    document.addEventListener("contextmenu", function (e) {
+    document.addEventListener('contextmenu', function (e) {
         e.preventDefault();
     }, false);
 }
@@ -86,6 +88,30 @@ function expandShown(board, idxI, idxJ) {
         }
     }
 }
+//this function only used while using undo button it dows the opposite of expandshown to hid all the cells in the recursion,
+// same function just with some falsy conditions
+function expandHidden(board, idxI, idxJ) {
+    for (var i = +idxI - 1; i <= +idxI + 1; i++) {
+        if (i < 0 || i > board.length - 1) continue
+        for (var j = +idxJ - 1; j <= +idxJ + 1; j++) {
+            if (j < 0 || j > board[0].length - 1) continue
+            if (i === idxI && j === idxJ) continue
+            var cell = board[i][j]
+            if (!cell.isShown) continue
+            if (cell.isMarked) continue
+            cell.isShown = false
+            var elCell = document.querySelector(`.cell-${i}-${j}`)
+            elCell.classList.remove('shown')
+            if (cell.minesAroundCount === 0) {
+                elCell.innerText = ''
+                expandHidden(board, i, j)
+            }
+            if (cell.minesAroundCount !== 0) {
+                elCell.innerText = ''
+            }
+        }
+    }
+}
 //filling in every cell the key : minesAroundCount by sending each cell to the count function
 function setMinesNegsCount(board) {
     for (var i = 0; i < board.length; i++) {
@@ -115,6 +141,21 @@ function cellClicked(elCell) {
     var elLives = document.querySelector('.hearts')
     var pos = elCell.dataset
     var cellInDom = gBoard[pos.i][pos.j]
+    //first click start the timer
+    if (!gIsFirstClick) {
+        timerStart()
+        gIsFirstClick = true
+        //making sure first click is never a mine!
+        if (!gIsBoom && !isManual) {
+            if (cellInDom.isMine) {
+                cellInDom.isMine = false
+                elCell.innerText = ''
+                clearBoard()
+                addRandomMine(gLevel.mines)
+                setMinesNegsCount(gBoard)
+            }
+        }
+    }
     //placing mines manually and then poping a button to start play the game
     if (isManual) {
         clearBoard()
@@ -130,11 +171,7 @@ function cellClicked(elCell) {
     if (cellInDom.isShown) return
     if (cellInDom.isMarked) return
     if (!gGame.isOn) return
-    //first click start the timer
-    if (!gIsClicked) {
-        timerStart()
-        gIsClicked = true
-    }
+
     //when clicking a hint we go into this condition that show us the cells and hide them back after 1 sec
     if (gIsHinting) {
         var elModalHint = document.querySelector('.hintmodal')
@@ -153,21 +190,25 @@ function cellClicked(elCell) {
     } else if (cellInDom.minesAroundCount === 0) {
         expandShown(gBoard, pos.i, pos.j)
         elCell.innerText = ''
+        gGameMoves.push({ action: 'click', location: pos, cell: elCell })
     } else {
         elCell.innerText = cellInDom.minesAroundCount
+        gGameMoves.push({ action: 'click', location: pos, cell: elCell })
+
     }
     //clicking a mine:  updating the hearts count updating the mines count and if no more hearts game over
     if (elCell.innerText === MINE) {
         gTotalMinesLeft--
         renderMinesLeft()
         renderLives()
+        gGameMoves.push({ action: 'mine', location: pos, cell: elCell })
         if (gLivesLeft === 0) {
             renderLives()
             gGame.isOn = false
             gameOver(elCell)
             elLives.innerText = 'You Are Dead!'
         }
-        //function that pop a modal to let u know we clicked a mine
+        //function that pop a modal to let u know u clicked a mine
         alertMine()
     }
     //checking if we won the game and rendering the smile into crown as a king of the game
@@ -189,11 +230,14 @@ function cellMarked(elCell) {
         elCell.innerText = ''
         gTotalMinesLeft++
         renderMinesLeft()
+        gGameMoves.push({ action: 'unmark', location: pos, cell: elCell })
+
     } else {
         cell.isMarked = true
         elCell.innerText = '🚩'
         gTotalMinesLeft--
         renderMinesLeft()
+        gGameMoves.push({ action: 'mark', location: pos, cell: elCell })
         if (gTotalMinesLeft < 0) {
             alertTooManyMarking()
         }
@@ -234,7 +278,7 @@ function resetGame() {
     init()
     timerEnd()
     timerReset()
-    gIsClicked = false
+    gIsFirstClick = false
     renderSafeClick()
     var elBtn = document.querySelector('.btn')
     var elhearts = document.querySelector('.hearts')
@@ -274,4 +318,3 @@ function exposeMines() {
         currMine.isShown = true
     }
 }
-

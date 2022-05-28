@@ -139,6 +139,28 @@ td {
     border: 3px solid black;
 }
 
+/* _______________________menu bars_______________________ */
+
+.gamesettings{
+    position: absolute;
+    background-color: #6a641d97;
+    border-bottom: 3px solid black;
+    width: 450px;
+    top: 20px;
+    right: 100px;
+    font-size: 50px;
+} 
+
+.resurcemenu{
+    position: absolute;
+    background-color: #6a641d97;
+    border-bottom: 3px solid black;
+    width: 450px;
+    top: 150px;
+    left: 100px;
+    font-size: 50px;
+}
+
 /* __________________________________FOOTER_______________________ */
 /* cofferights */
 .footer {
