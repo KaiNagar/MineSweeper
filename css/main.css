@@ -3,6 +3,7 @@
     background-image: url('https://img2.10bestmedia.com/Images/Photos/380645/GettyImages-613758084_54_990x660.jpg');
     background-size: cover;
     background-color: lightblue;
+    background-repeat: no-repeat;
     text-align: center;
 }
 
@@ -13,7 +14,10 @@ h1 {
 /* table style */
 .table {
     background-color: grey;
-    border: 5px solid black;
+    border-bottom: 5px solid black;
+    border-right: 5px solid black;
+    border-top: 5px solid #ebe7e7;
+    border-left: 5px solid #ebe7e7;
     height: 600px;
     width: 600px;
     margin: auto;
@@ -24,8 +28,9 @@ h1 {
 td {
     border-bottom: 5px solid black;
     border-right: 5px solid black;
-    border-top: 5px solid white;
-    border-left: 5px solid white;
+    border-top: 5px solid #ebe7e7;
+    border-left: 5px solid #ebe7e7;
+    font-size: 90%;
 
 }
 
@@ -43,8 +48,8 @@ td {
 .shown {
     border-top: 5px solid black;
     border-left: 5px solid black;
-    border-bottom: 5px solid white;
-    border-right: 5px solid white;
+    border-bottom: 5px solid #ebe7e7;
+    border-right: 5px solid #ebe7e7;
 }
 
 /* timer div + clock */
@@ -80,7 +85,6 @@ td {
     width: 60px;
     border-radius: 10px;
     border: 3px solid black;
-    margin: auto;
     cursor: pointer;
     display: block;
     font-size: 40px;
@@ -91,15 +95,11 @@ td {
 /* smile hover */
 .btn:hover {
     background-color: rgb(200, 171, 171);
-    height: 70px;
-    width: 70px;
-    font-size: 50px;
 }
 
 /* if you click on a mine pop up a modal */
 .mineclick {
     display: none;
-    margin: auto;
     position: absolute;
     width: 250px;
     height: 100px;
@@ -107,7 +107,35 @@ td {
     left: 833px;
     font-size: 40px;
     font-weight: bold;
-    background-color: brown;
+    background-color: #f83333;
+    border: 3px solid black;
+}
+
+/* if you mark more then the mines per level it will pop this modal */
+.toomuchmarking{
+    display:none;
+    position: absolute;
+    width: 300px;
+    height: 200px;
+    top: 300px;
+    left: 808px;
+    font-size: 40px;
+    font-weight: bold;
+    background-color: #f83333;
+    border: 5px solid black;
+}
+
+/* modal telling the user he is using a hint */
+.hintmodal{
+    display: none;
+    position: absolute;
+    width: 150px;
+    height: 100px;
+    top: 50px;
+    left: 100px;
+    font-size: 30px;
+    font-weight: bold;
+    background-color: #eff463;
     border: 3px solid black;
 }
 

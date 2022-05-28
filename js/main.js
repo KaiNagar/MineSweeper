@@ -1,18 +1,17 @@
 'use strict'
 
 const MINE = '💣'
-                                    ///////////////     ////                    ////////////////                ////////
-                                        //////          ////                        /////                   ////////////////    
-                                        //////          ////                        /////                 //////        //////  
-                                        //////          ////                        /////                //////          //////
-                                        //////          ////                        /////                 /////  
-                                        //////          ////                        /////                  /////     
-                                        //////          ////                        /////                   /////    
+///////////////     ////                    ////////////////                ////////
+//////          ////                        /////                   ////////////////    
+//////          ////                        /////                 //////        //////  
+//////          ////                        /////                //////          //////
+//////          ////                        /////                 /////  
+//////          ////                        /////                  /////     
+//////          ////                        /////                   /////    
 var gBoard                              //////          ////                         /////                    //////
 var gTotalMinesLeft                     //////          ////                          /////          /////       ////
 var gMinesPos                           //////          ////                           /////          /////       /////
 var gIsClicked                          //////          ////                            /////          /////     //////
-var gScore                              //////          ////                            /////           ///////////////          
 var gLevel = {                      ///////////////     ///////////////////              /////////////    ///////////
     size: 4,
     mines: 2
@@ -43,6 +42,7 @@ function init() {
     setMinesNegsCount(gBoard)
     gTotalMinesLeft = gLevel.mines
     renderMinesLeft()
+    renderBestScore()
     document.addEventListener("contextmenu", function (e) {
         e.preventDefault();
     }, false);
@@ -58,23 +58,27 @@ function countNeighbors(board, rowIdx, colIdx) {
             if (i === rowIdx && j === colIdx) continue
             var cell = board[i][j]
             if (cell.isMine) count++
+
         }
     }
     return count
 }
-//if cell have 0 beighbors it will expand all cells on the 1st degree
+//if cell have 0 beighbors it will expand all cells on the 1st degree + all cells with no mine around them
 function expandShown(board, idxI, idxJ) {
     for (var i = +idxI - 1; i <= +idxI + 1; i++) {
         if (i < 0 || i > board.length - 1) continue
         for (var j = +idxJ - 1; j <= +idxJ + 1; j++) {
             if (j < 0 || j > board[0].length - 1) continue
+            if (i === idxI && j === idxJ) continue
             var cell = board[i][j]
+            if (cell.isShown) continue
             if (cell.isMarked) continue
             cell.isShown = true
             var elCell = document.querySelector(`.cell-${i}-${j}`)
             elCell.classList.add('shown')
             if (cell.minesAroundCount === 0) {
                 elCell.innerText = ''
+                expandShown(board, i, j)
             }
             if (cell.minesAroundCount !== 0) {
                 elCell.innerText = cell.minesAroundCount
@@ -111,6 +115,17 @@ function cellClicked(elCell) {
     var elLives = document.querySelector('.hearts')
     var pos = elCell.dataset
     var cellInDom = gBoard[pos.i][pos.j]
+    //placing mines manually and then poping a button to start play the game
+    if (isManual) {
+        clearBoard()
+        if (gMinesPos.length !== gLevel.mines) {
+            elCell.innerText = MINE
+            gMinesPos.push(pos)
+            return
+        }
+        playManual()
+        return
+    }
     //some checkings if we dont want clicks to happens
     if (cellInDom.isShown) return
     if (cellInDom.isMarked) return
@@ -119,15 +134,15 @@ function cellClicked(elCell) {
     if (!gIsClicked) {
         timerStart()
         gIsClicked = true
-        gScore = new Date
     }
     //when clicking a hint we go into this condition that show us the cells and hide them back after 1 sec
     if (gIsHinting) {
+        var elModalHint = document.querySelector('.hintmodal')
         showHint(gBoard, pos.i, pos.j)
         setTimeout(() => {
+            elModalHint.style.display = 'none'
             hideHint(gBoard, pos.i, pos.j)
         }, 1000);
-        gIsHinting = false
         return
     }
     //normal clicks
@@ -158,11 +173,10 @@ function cellClicked(elCell) {
     //checking if we won the game and rendering the smile into crown as a king of the game
     if (checkGameOver()) {
         timerEnd()
-        var endScore = new Date
         var elBtn = document.querySelector('.btn')
         elBtn.innerText = '👑'
         exposeMines()
-        gScore = ((parseInt(endScore - gScore) / 10) / 100)
+        renderBestScore()
     }
 }
 //when cell is right clicked it wil lbe marked with a flag
@@ -180,13 +194,14 @@ function cellMarked(elCell) {
         elCell.innerText = '🚩'
         gTotalMinesLeft--
         renderMinesLeft()
+        if (gTotalMinesLeft < 0) {
+            alertTooManyMarking()
+        }
         if (checkGameOver()) {
-            var endScore = new Date
             timerEnd()
             var elBtn = document.querySelector('.btn')
             elBtn.innerText = '👑'
             exposeMines()
-            gScore = ((parseInt(endScore - gScore) / 10) / 100)
         }
     }
 }
@@ -223,12 +238,15 @@ function resetGame() {
     renderSafeClick()
     var elBtn = document.querySelector('.btn')
     var elhearts = document.querySelector('.hearts')
-    var elHints = document.querySelector('.hints')
+    var elSpan1 = document.querySelector('.hint1')
+    var elSpan2 = document.querySelector('.hint2')
+    var elSpan3 = document.querySelector('.hint3')
     elBtn.innerText = '😀'
     elhearts.innerText = '💙💙💙'
-    elHints.innerText = '💡💡💡'
+    elSpan1.innerText = '💡'
+    elSpan2.innerText = '💡'
+    elSpan3.innerText = '💡'
 }
-
 //when clicking a mine a modal will pop up to let you know!!!! be careful!!
 function alertMine() {
     var elAlert = document.querySelector('.mineclick')
@@ -236,6 +254,15 @@ function alertMine() {
     setTimeout(() => {
         elAlert.style.display = 'none'
     }, 1000);
+}
+//when marking more then the mines number it will pop a modal for 2 seconds to let then know they need to unmark some cells
+function alertTooManyMarking() {
+    var elMark = document.querySelector('.toomuchmarking')
+    elMark.innerText = `You Can Only Mark ${gLevel.mines} Mines!\n Unmark Some Cells Please`
+    elMark.style.display = 'block'
+    setTimeout(() => {
+        elMark.style.display = 'none'
+    }, 2000);
 }
 //incharge for exposing the mines in gameover function and some other case when game is over
 function exposeMines() {
@@ -248,53 +275,3 @@ function exposeMines() {
     }
 }
 
-
-// WIP
-//storing the best score each round and checking if its 
-//better then the current best score
-
-// function bestScoreRender() {
-//     var elScore = document.querySelector('.bscore')
-//     var bestScore1 = localStorage.getItem('score1')
-//     var bestScore2 = localStorage.getItem('score2')
-//     var bestScore3 = localStorage.getItem('score3')
-//     if (gLevel.size === 4) {
-//         if (elScore.innerText === '0.00') elScore.innerText = gScore
-//         if (gScore < bestScore1) {
-//             localStorage.setItem('score1', gScore)
-//             elScore.innerText = gScore
-//         }
-//     }
-//     if (gLevel.size === 8) {
-//         if (elScore.innerText === '0.00') elScore.innerText = gScore
-//         if (gScore < bestScore2) {
-//             localStorage.setItem('score2', gScore)
-//             elScore.innerText = gScore
-//         }
-//     }
-//     if (gLevel.size === 12) {
-//         if (elScore.innerText === '0.00') elScore.innerText = gScore
-//         if (gScore < bestScore3) {
-//             localStorage.setItem('score3', gScore)
-//             elScore.innerText = gScore
-//         }
-//     }
-// }
-// rendering the dom with past best scores when game starts
-// function renderPastScores() {
-//     var elScore = document.querySelector('.bscore')
-//     var scoreLvl1 = localStorage.getItem('Best Score1:')
-//     var scoreLvl2 = localStorage.getItem('Best Score2:')
-//     var scoreLvl3 = localStorage.getItem('Best Score3:')
-//     if (gLevel.size === 4) {
-//         if (!elScore.innerText) elScore.innerText = '0.00'
-//         elScore.innerText = scoreLvl1
-//     } else if (gLevel.size === 8) {
-//         if (!elScore.innerText) elScore.innerText = '0.00'
-//         elScore.innerText = scoreLvl2
-//     } else if (gLevel.size === 12) {
-//         if (!elScore.innerText) elScore.innerText = '0.00'
-//         elScore.innerText = scoreLvl3
-
-//     }
-// }

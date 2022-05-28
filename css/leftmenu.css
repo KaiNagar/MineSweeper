@@ -35,7 +35,13 @@
 
 /* hints hover */
 .hints:hover {
-    font-size: 40px;
+    background-color: rgb(200, 228, 143);
+    border-radius: 50%;
+}
+/* keeping the hint color until function ends */
+.hintting{
+    background-color: rgb(116, 182, 235);
+    border-radius: 50%;
 }
 
 /* mines left text */
